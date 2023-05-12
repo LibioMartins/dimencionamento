@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculo de laje</title>
+    <style>
+        canvas{
+            border:1px solid rgb(0, 0, 0);
+        }
+        #memorial{
+          display: none;  
+        }
+        #ferramentas{
+            width: 800px;
+        }
+        #qsob{
+            width: 50px;
+            height: 20px;
+        }
+        table{
+            border-collapse: collapse;
+        }
+        caption{
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 10px;
+        }
+        th,td{
+            border:1px solid black;
+            padding: 10px;
+        }
+        tr:nth-child(even){
+            background-color: lightgray;
+        }
+    </style>
+</head>
+<body>
+    <div id="ferramentas" onclick="press()">
+        <input type="button" id="desenhar" value="Desenhar" onclick="desenhar()">
+        <input type="button" id="modificar" value="Modificar" onclick="modificar()">
+        <input type="button" id="engastar" value="Engastar" onclick="engastar()">
+        <input type="button"id="mover" value="Mover" onclick="mover()">
+        <select id="fck" name="fck">
+                
+                <option value="20">Fck-20</option>
+                <option value="25">Fck-25</option>
+                <option value="30">Fck-30</option>
+                <option value="35">Fck-35</option>
+                <option value="40">Fck-40</option>
+                <option value="45">Fck-45</option>
+                <option value="50">Fck-50</option>
+        </select>
+        <abbr title="Carga sobre a laje + revestimento em kN/m^2">
+           <input type="number" id="qsob" placeholder="Carga" maxlength="4"
+           step="0.01" min="0" max="100"
+      required>
+        </abbr>
+        kN/m&#178
+        <select id="aco">
+            <option value="35">Aço CA-25</option>
+            <option value="33">Aço CA-32</option>
+            <option value="30">Aço CA-40</option>
+            <option value="25">Aço CA-50</option>
+            <option value="20">Aço CA-60</option>
+        </select>
+      
+        <input type="button" id="calcular"  value="Calcular" onclick="calcular()">
+    </div>
+    <main>
+        <canvas id="canvas" width="800" height="500" onmousedown="clicar()" onmouseup="soltar()" onmouseenter="entrar()" onmouseout="sair()" onmousemove="moveu()"></canvas><br>
+        <div id="memorial">
+        <h2>Memorial de cálculo:</h2>
+        <p>O cálculo de λ é dado por ly dividido por lx, sendo ly o maior lado e lx o menor. Então nós temos:</p>
+        <math>
+            <mi>λ</mi>
+            <mo>=</mo>
+            <mfrac>
+                <mrow>
+                    <mn id="ly">ly</mn>
+                </mrow>
+                <mn id="lx">lx</mn>
+            </mfrac>
+        </math>
+        <math>
+            <mi>λ</mi>
+            <mo>=</mo>
+            <mi id="λ"></mi>
+        </math>
+        <p>Assim sendo temos uma laje<mi id="direcao"></mi> </p>
+        <table id="tabelaψ2">
+            <caption>
+                Valores de ψ3 
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col">Aço utilizado</th>
+                    <th scope="col">ψ3</th>
+                </tr>  
+            </thead>
+            <tbody>
+                <tr>
+                    <th>CA-25</th>
+                    <td class="num">35</td>
+                </tr>
+                <th>CA-32</th>
+                <td class="num">33</td>
+                <tr>
+                    <th>CA-40</th>
+                    <td class="num">30</td>
+                </tr>
+                <tr>
+                    <th>CA-50</th>
+                    <td class="num">25</td>
+                </tr>
+                <tr>
+                    <th>CA-60</th>
+                    <td class="num">20</td>
+                </tr>
+            </tbody>
+        </table>
+        <math>
+            <mi>ψ3</mi>
+            <mo>=</mo>
+            <mi id="ψ3"></mi>
+        </math>
+        <table id="tabelaψ2">
+            <caption>
+                Valores de ψ2 para lajes armadas em 2 direções.
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col">l &#8595</th>
+                    <th scope="col">L &#8594</th>
+                    <th scope="col">L/l</th>
+                    <th scope="col">E----E</th>
+                    <th scope="col">E----A</th>
+                    <th scope="col">A----A</th>
+                    <th scope="col">E----B</th>
+                    <th scope="col">A----B</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th rowspan="6" colspan="2" scope="rowgroup">E----E</th>
+                    <td>1.0</td>
+                    <td>2.20</td>
+                    <td>2.00</td>
+                    <td>1.90</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                </tr>
+                <tr>
+                    <td>1.2</td>
+                    <td>2.10</td>
+                    <td>1.94</td>
+                    <td>1.86</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                </tr>
+                <tr>
+                    <td>1.4</td>
+                    <td>2.00</td>
+                    <td>1.88</td>
+                    <td>1.82</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                </tr>
+                <tr>
+                    <td>1.6</td>
+                    <td>1.90</td>
+                    <td>1.82</td>
+                    <td>1.76</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                </tr>
+                <tr>
+                    <td>1.8</td>
+                    <td>1.80</td>
+                    <td>1.76</td>
+                    <td>1.74</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                </tr>
+                <tr>
+                    <td>2.0</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                    <td>1.70</td>
+                </tr>
+                <tr>
+                    <th rowspan="6" colspan="2" scope="rowgroup">E----A</th>
+                    <td>1.0</td>
+                    <td>2.00</td>
+                    <td>1.80</td>
+                    <td>1.70</td>
+                    <td>1.40</td>
+                    <td>1.30</td>
+                </tr>
+                <tr>
+                    <td>1.2</td>
+                    <td>1.88</td>
+                    <td>1.72</td>
+                    <td>1.64</td>
+                    <td>1.38</td>
+                    <td>1.30</td>
+                </tr>
+                <tr>
+                    <td>1.4</td>
+                    <td>1.76</td>
+                    <td>1.64</td>
+                    <td>1.58</td>
+                    <td>1.36</td>
+                    <td>1.30</td>
+                </tr>
+                <tr>
+                    <td>1.6</td>
+                    <td>1.64</td>
+                    <td>1.56</td>
+                    <td>1.52</td>
+                    <td>1.34</td>
+                    <td>1.30</td>
+                </tr>
+                <tr>
+                    <td>1.8</td>
+                    <td>1.52</td>
+                    <td>1.48</td>
+                    <td>1.46</td>
+                    <td>1.32</td>
+                    <td>1.30</td>
+                </tr>
+                <tr>
+                    <td>2.0</td>
+                    <td>1.40</td>
+                    <td>1.40</td>
+                    <td>1.40</td>
+                    <td>1.30</td>
+                    <td>1.30</td>
+                </tr>
+                <tr>
+                    <th rowspan="6" colspan="2" scope="rowgroup">A----A</th>
+                    <td>1.0</td>
+                    <td>1.90</td>
+                    <td>1.70</td>
+                    <td>1.50</td>
+                    <td>1.10</td>
+                    <td>1.00</td>
+                </tr>
+                <tr>
+                    <td>1.2</td>
+                    <td>1.76</td>
+                    <td>1.22</td>
+                    <td>1.42</td>
+                    <td>1.08</td>
+                    <td>1.00</td>
+                </tr>
+                <tr>
+                    <td>1.4</td>
+                    <td>1.62</td>
+                    <td>1.46</td>
+                    <td>1.34</td>
+                    <td>1.06</td>
+                    <td>1.00</td>
+                </tr>
+                <tr>
+                    <td>1.6</td>
+                    <td>1.48</td>
+                    <td>1.34</td>
+                    <td>1.26</td>
+                    <td>1.04</td>
+                    <td>1.00</td>
+                </tr>
+                <tr>
+                    <td>1.8</td>
+                    <td>1.34</td>
+                    <td>1.22</td>
+                    <td>1.16</td>
+                    <td>1.02</td>
+                    <td>1.00</td>
+                </tr>
+                <tr>
+                    <td>2.0</td>
+                    <td>1.20</td>
+                    <td>1.10</td>
+                    <td>1.10</td>
+                    <td>1.00</td>
+                    <td>1.00</td>
+                </tr>
+                <tr>
+                    <th rowspan="6" colspan="2" scope="rowgroup">E----B</th>
+                    <td>1.0</td>
+                    <td>1.70</td>
+                    <td>1.40</td>
+                    <td>1.10</td>
+                    <td>0.70</td>
+                    <td>0.60</td>
+                </tr>
+                <tr>
+                    <td>1.2</td>
+                    <td>1.45</td>
+                    <td>1.22</td>
+                    <td>0.96</td>
+                    <td>0.66</td>
+                    <td>0.58</td>
+                </tr>
+                <tr>
+                    <td>1.4</td>
+                    <td>1.22</td>
+                    <td>1.04</td>
+                    <td>0.86</td>
+                    <td>0.62</td>
+                    <td>0.56</td>
+                </tr>
+                <tr>
+                    <td>1.6</td>
+                    <td>0.98</td>
+                    <td>0.86</td>
+                    <td>0.74</td>
+                    <td>0.58</td>
+                    <td>0.54</td>
+                </tr>
+                <tr>
+                    <td>1.8</td>
+                    <td>0.74</td>
+                    <td>0.68</td>
+                    <td>0.62</td>
+                    <td>0.54</td>
+                    <td>0.52</td>
+                </tr>
+                <tr>
+                    <td>2.0</td>
+                    <td>0.50</td>
+                    <td>0.50</td>
+                    <td>0.50</td>
+                    <td>0.50</td>
+                    <td>0.50</td>
+                </tr>
+                <tr>
+                    <th rowspan="6" colspan="2" scope="rowgroup">A----B</th>
+                    <td>1.0</td>
+                    <td>1.50</td>
+                    <td>1.30</td>
+                    <td>1.00</td>
+                    <td>0.60</td>
+                    <td>0.50</td>
+                </tr>
+                <tr>
+                    <td>1.2</td>
+                    <td>1.46</td>
+                    <td>1.14</td>
+                    <td>0.90</td>
+                    <td>0.58</td>
+                    <td>0.46</td>
+                </tr>
+                <tr>
+                    <td>1.4</td>
+                    <td>1.22</td>
+                    <td>0.96</td>
+                    <td>0.60</td>
+                    <td>0.56</td>
+                    <td>0.42</td>
+                </tr>
+                <tr>
+                    <td>1.6</td>
+                    <td>0.96</td>
+                    <td>0.82</td>
+                    <td>0.70</td>
+                    <td>0.54</td>
+                    <td>0.38</td>
+                </tr>
+                <tr>
+                    <td>1.8</td>
+                    <td>0.96</td>
+                    <td>0.66</td>
+                    <td>0.60</td>
+                    <td>0.52</td>
+                    <td>0.34</td>
+                </tr>
+                <tr>
+                    <td>2.0</td>
+                    <td>0.50</td>
+                    <td>0.50</td>
+                    <td>0.50</td>
+                    <td>0.50</td>
+                    <td>0.30</td>
+                </tr>
+
+            </tbody>
+        </table>
+        <math>
+            <mi>ψ2</mi>
+            <mo>=</mo>
+            <mi id="ψ2">ψ2</mi>
+        </math><br>
+        <p>A espessura da laje(h) então e obtida por:</p>
+        <math>
+            <mi>h</mi>
+            <mo>&#8805</mo>
+            <mfrac>
+                <mrow>
+                    <mn id="lx2">lx</mn>
+                </mrow>
+                <mrow>
+                    <mn id="ψ22">ψ2</mn>
+                    <mo>x</mo>
+                    <mi id="ψ32">ψ3</mi>
+                </mrow>
+            </mfrac>
+        </math>
+        <mi>h</mi>
+        <mo>&#8805</mo>
+        <mi id="h"></mi>cm
+        <p> &#931 das cargas:</p>
+        <math>
+            <msub>
+                <mn>q</mn>
+                <mn>revestimento</mn>
+            </msub>
+            <mo>+</mo>
+            <msub>
+                <mn>q</mn>
+                <mn>sobre a laje</mn>
+            </msub>
+            <mo>=</mo>
+            <mn id="qsoma">0</mn>
+        </math>
+        <p>E obtemos o peso proprio da laje com:</p>
+        <math>
+            <msub>
+                <mn>&#947</mn>
+                <mn>concreto</mn>
+            </msub>
+            <mo>=</mo>
+            <mn>25 kN/m&#179</mn>
+        </math>
+        <math>
+            <mn>Espessura da laje</mn>
+            <mo>=</mo>
+            <mfrac>
+                <mrow>
+                    <mo id="h2"></mo>
+                </mrow>
+                <mrow>
+                    <mi>100</mi>
+                </mrow>
+            </mfrac>
+        </math><br>
+
+        <math>
+            <msub>
+                <mn>q</mn>
+                <mn>sobre a laje</mn>
+            </msub>
+            <mo>=</mo>
+            <msub>
+                <mn>&#947</mn>
+                <mn>c</mn>
+            </msub>
+            <mo>x</mo>
+            <mfrac>
+                <mrow>
+                    <mo>Esp</mo>
+                </mrow>
+                <mrow>
+                    <mi>100</mi>
+                </mrow>
+            </mfrac>
+        </math><br>
+        <math>
+            <msub>
+                <mn>q</mn>
+                <mn>laje</mn>
+            </msub>
+            <mo>=</mo>
+            <mi id="qlaje"></mi>
+        </math><br>
+        <math>
+            <msub>
+                <mn>q</mn>
+                <mn>total</mn>
+            </msub>
+            <mo>=</mo>
+            <mi id="qtotal"></mi>
+        </math>
+        <table>
+            <caption>
+                <p>Tabela para os valores de &#956</p>
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col">Tipo</th>
+                    <th scope="col" colspan="2">lx=AA ly=AA</th>
+                    <th scope="col" colspan="3">lx=AE ly=AA</th>
+                    <th scope="col" colspan="3">lx=AA ly=AE</th>
+                    <th scope="col" colspan="4">lx=AE ly=AE</th>
+                    <th scope="col" colspan="3">lx=AA ly=EE</th>
+                    <th scope="col" colspan="3">lx=EE ly=AA</th>
+                    <th scope="col" colspan="4">lx=AE ly=EE</th>
+                    <th scope="col" colspan="4">lx=EE ly=AE</th>
+                    <th scope="col" colspan="4">lx=EE ly=EE</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                    <tr>
+                        <th scope="col">λ</th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>x</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                        <th scope="col">
+                            <math>
+                                <msub>
+                                    <mn>&#956'</mn>
+                                    <mn>y</mn>
+                                </msub>
+                            </math>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>1,00</th>
+                        <td>4,23</td>
+                        <td>4,23</td>
+                        <td>2,91</td>
+                        <td>3,54</td>
+                        <td>8,40</td>
+                        <td>3,54</td>
+                        <td>8,40</td>
+                        <td>2,91</td>
+                        <td>2,69</td>
+                        <td>6,99</td>
+                        <td>2,69</td>
+                        <td>6,99</td>
+                        <td>2,01</td>
+                        <td>3,09</td>
+                        <td>6,99</td>
+                        <td>3,09</td>
+                        <td>6,99</td>
+                        <td>2,01</td>
+                        <td>2,02</td>
+                        <td>5,46</td>
+                        <td>2,52</td>
+                        <td>6,17</td>
+                        <td>2,52</td>
+                        <td>6,17</td>
+                        <td>2,02</td>
+                        <td>5,46</td>
+                        <td>2,02</td>
+                        <td>5,15</td>
+                        <td>2,02</td>
+                        <td>5,15</td>
+                    </tr>
+                    <tr>
+                        <th>1,05</th>
+                        <td>4,62</td>
+                        <td>4,25</td>
+                        <td>3,26</td>
+                        <td>3,64</td>
+                        <td>8,79</td>
+                        <td>3,77</td>
+                        <td>8,79</td>
+                        <td>2,84</td>
+                        <td>2,94</td>
+                        <td>7,43</td>
+                        <td>2,68</td>
+                        <td>7,18</td>
+                        <td>2,32</td>
+                        <td>3,23</td>
+                        <td>7,43</td>
+                        <td>3,22</td>
+                        <td>7,20</td>
+                        <td>1,92</td>
+                        <td>2,27</td>
+                        <td>5,98</td>
+                        <td>2,56</td>
+                        <td>6,46</td>
+                        <td>2,70</td>
+                        <td>6,47</td>
+                        <td>1,97</td>
+                        <td>5,56</td>
+                        <td>2,22</td>
+                        <td>5,50</td>
+                        <td>2,00</td>
+                        <td>5,29</td>
+                </tr>
+                <tr>
+                             
+                    <th>1,10</th>
+                    <td>5,00</td>
+                    <td>4,27</td>
+                    <td>3,61</td>
+                    <td>3,74</td>
+                    <td>9,18</td>
+                    <td>3,99</td>
+                    <td>9,17</td>
+                    <td>2,76</td>      
+                    <td>3,19</td>
+                    <td>7,87</td>
+                    <td>2,67</td>
+                    <td>7,36</td>
+                    <td>2,63</td>
+                    <td>3,36</td>
+                    <td>7,87</td>
+                    <td>3,35</td>
+                    <td>7,41</td>
+                    <td>1,83</td>            
+                    <td>2,52</td>
+                    <td>6,50</td>
+                    <td>2,60</td>
+                    <td>6,75</td>
+                    <td>2,87</td>
+                    <td>6,76</td>
+                    <td>1,91</td>
+                    <td>5,65</td>
+                    <td>2,42</td>
+                    <td>5,85</td>
+                    <td>1,98</td>
+                    <td>5,43</td>       
+                </tr>
+                <tr>   
+                    <th>1,15</th>
+                    <td>5,38</td>
+                    <td>4,25</td>
+                    <td>3,98</td>
+                    <td>3,80</td>
+                    <td>9,53</td>
+                    <td>4,19</td>
+                    <td>9,49</td>
+                    <td>2,68</td>       
+                    <td>3,42</td>
+                    <td>8,28</td>
+                    <td>2,65</td>
+                    <td>7,50</td>
+                    <td>2,93</td>
+                    <td>3,46</td>
+                    <td>8,26</td>
+                    <td>3,46</td>
+                    <td>7,56</td>
+                    <td>1,73</td>
+                    <td>2,76</td>
+                    <td>7.11</td>
+                    <td>2.63</td>
+                    <td>6,97</td>
+                    <td>3.02</td>
+                    <td>6,99</td>
+                    <td>1.84</td>
+                    <td>5.70</td>
+                    <td>2,65</td>
+                    <td>6,14</td>
+                    <td>1,94</td>
+                    <td>5,51</td>
+                </tr>
+                <tr>
+                             
+                    <th>1,20</th>
+                    <td>5,75</td>
+                    <td>4,22</td>
+                    <td>4,35</td>
+                    <td>3,86</td>
+                    <td>9,88</td>
+                    <td>4,38</td>
+                    <td>9,80</td>
+                    <td>2,59</td>     
+                    <td>3,65</td>
+                    <td>8,69</td>
+                    <td>2,62</td>
+                    <td>7,63</td>
+                    <td>3,22</td>
+                    <td>3,56</td>
+                    <td>8,65</td>
+                    <td>3,57</td>
+                    <td>7,70</td>
+                    <td>1,63</td>
+                    <td>3,00</td>
+                    <td>7,72</td>
+                    <td>2,65</td>
+                    <td>7,19</td>
+                    <td>3,16</td>
+                    <td>7,22</td>
+                    <td>1,77</td>
+                    <td>5,75</td>
+                    <td>2,87</td>
+                    <td>6,43</td>
+                    <td>1,89</td>
+                    <td>5,59</td>
+                </tr>
+                <tr>
+                    <th>1,25</th>
+                    <td>6,10</td>
+                    <td>4,17</td>
+                    <td>4,72</td>
+                    <td>3,89</td>
+                    <td>10,16</td>
+                    <td>4,55</td>
+                    <td>10,06</td>
+                    <td>2,51</td>     
+                    <td>3,86</td>
+                    <td>9,03</td>
+                    <td>2,56</td>
+                    <td>7,72</td>
+                    <td>3,63</td>
+                    <td>3,64</td>
+                    <td>9,03</td>
+                    <td>3,66</td>
+                    <td>7,82</td>
+                    <td>1,56</td>
+                    <td>3,23</td>
+                    <td>8,81</td>
+                    <td>2,64</td>
+                    <td>7,36</td>
+                    <td>3,28</td>
+                    <td>7,40</td>
+                    <td>1,70</td>
+                    <td>5,57</td>
+                    <td>2,97</td>
+                    <td>6,67</td>
+                    <td>1,83</td>
+                    <td>5,64</td>   
+                </tr>
+                <tr>
+                            
+                    <th>1,30</th>
+                    <td>6,44</td>
+                    <td>4,12</td>
+                    <td>5,09</td>
+                    <td>3,92</td>
+                    <td>10,41</td>
+                    <td>4,71</td>
+                    <td>10,32</td>
+                    <td>2,42</td>
+                    <td>4,06</td>     
+                    <td>9,37</td>
+                    <td>2,50</td>
+                    <td>7,81</td>
+                    <td>3,99</td>
+                    <td>3,72</td>
+                    <td>9,33</td>
+                    <td>3,74</td>
+                    <td>7,93</td>
+                    <td>1,49</td>         
+                    <td>3,45</td>
+                    <td>8,59</td>
+                    <td>2,61</td>
+                    <td>7,51</td>
+                    <td>3,40</td>
+                    <td>7,57</td>
+                    <td>1,62</td>
+                    <td>5,76</td>
+                    <td>3,06</td>
+                    <td>6,90</td>
+                    <td>1,77</td>
+                    <td>5,68</td>
+                </tr>
+                <tr>  
+                    <th>1,35</th>
+                    <td>6,77</td>
+                    <td>4,06</td>
+                    <td>5,44</td>
+                    <td>3,93</td>
+                    <td>10,64</td>
+                    <td>4,86</td>
+                    <td>10,54</td>
+                    <td>2,34</td>      
+                    <td>4,24</td>
+                    <td>9,65</td>
+                    <td>2,45</td>
+                    <td>7,88</td>
+                    <td>4,34</td>
+                    <td>3,77</td>
+                    <td>9,69</td>
+                    <td>3,80</td>
+                    <td>8,02</td>
+                    <td>1,41</td>
+                    <td>3,66</td>
+                    <td>8,74</td>
+                    <td>2,57</td>
+                    <td>7,63</td>
+                    <td>3,50</td>
+                    <td>7,70</td>
+                    <td>1,55</td>
+                    <td>5,75</td>
+                    <td>3,19</td>
+                    <td>7,09</td>
+                    <td>1,71</td>
+                    <td>5,69</td>
+                    
+
+                </tr>
+                <tr>
+                            
+                    <th>1,40</th>
+                    <td>7,10</td>
+                    <td>4,00</td>
+                    <td>5,79</td>
+                    <td>3,94</td>
+                    <td>10,86</td>
+                    <td>5,00</td>
+                    <td>10,75</td>
+                    <td>2,25</td>      
+                    <td>4,42</td>
+                    <td>9,93</td>
+                    <td>2,39</td>
+                    <td>7,94</td>
+                    <td>4,69</td>
+                    <td>3,82</td>
+                    <td>10,00</td>
+                    <td>3,86</td>
+                    <td>8,11</td>
+                    <td>1,33</td>
+                    <td>3,86</td>
+                    <td>8,88</td>
+                    <td>2,53</td>
+                    <td>7,74</td>
+                    <td>3,59</td>
+                    <td>7,82</td>
+                    <td>1,47</td>
+                    <td>5,74</td>
+                    <td>3,32</td>
+                    <td>7,28</td>
+                    <td>1,65</td>
+                    <td>5,70</td>
+                </tr>
+                
+                <tr>
+                    <th>1,45</th>
+                    <td>7,41</td>
+                    <td>3,95</td>
+                    <td>6,12</td>
+                    <td>3,91</td>
+                    <td>11,05</td>
+                    <td>5,12</td>
+                    <td>10,92</td>
+                    <td>2,19</td>  
+                    <td>4,58</td>
+                    <td>10,17</td>
+                    <td>2,32</td>
+                    <td>8,00</td>
+                    <td>5,03</td>
+                    <td>3,86</td>
+                    <td>10,25</td>
+                    <td>3,91</td>
+                    <td>8,13</td>
+                    <td>1,26</td>
+                    <td>4,05</td>
+                    <td>9,16</td>
+                    <td>2,48</td>
+                    <td>7,83</td>
+                    <td>3,67</td>
+                    <td>7,91</td>
+                    <td>1,41</td>
+                    <td>5,73</td>
+                    <td>3,43</td>
+                    <td>7,43</td>
+                    <td>1,57</td>
+                    <td>5,71</td>
+                </tr>
+                <tr>
+                    <th>1,50</th>
+                    <td>7,72</td>
+                    <td>3,89</td>
+                    <td>6,45</td>
+                    <td>3,88</td>
+                    <td>11,23</td>
+                    <td>5,24</td>
+                    <td>11,09</td>
+                    <td>2,12</td>     
+                    <td>4,73</td>
+                    <td>10,41</td>
+                    <td>2,25</td>
+                    <td>8,06</td>
+                    <td>5,37</td>
+                    <td>3,90</td>
+                    <td>10,49</td>
+                    <td>3,96</td>
+                    <td>8,15</td>
+                    <td>1,19</td>
+                    <td>4,23</td>
+                    <td>9,44</td>
+                    <td>2,43</td>
+                    <td>7,91</td>
+                    <td>3,74</td>
+                    <td>8,00</td>
+                    <td>1,35</td>
+                    <td>5,72</td>
+                    <td>3,53</td>
+                    <td>7,57</td>
+                    <td>1,49</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>       
+                    <th>1,55</th>
+                    <td>7,99</td>
+                    <td>3,82</td>
+                    <td>6,76</td>
+                    <td>3,85</td>
+                    <td>11,39</td>
+                    <td>5,34</td>
+                    <td>11,23</td>
+                    <td>2,04</td>       
+                    <td>4,86</td>
+                    <td>10,62</td>
+                    <td>2,16</td>
+                    <td>8,09</td>
+                    <td>5,70</td>
+                    <td>3,90</td>
+                    <td>10,70</td>
+                    <td>4,00</td>
+                    <td>8,20</td>
+                    <td>1,14</td>
+                    <td>4,39</td>
+                    <td>9,68</td>
+                    <td>2,39</td>
+                    <td>7,98</td>
+                    <td>3,80</td>
+                    <td>8,07</td>
+                    <td>1,29</td> 
+                    <td>5,69</td>
+                    <td>3,61</td>
+                    <td>7,68</td>
+                    <td>1,43</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>       
+                    <th>1,60</th>
+                    <td>8,26</td>
+                    <td>3,74</td>
+                    <td>7,07</td>
+                    <td>3,81</td>
+                    <td>11,55</td>
+                    <td>5,44</td>
+                    <td>11,36</td>
+                    <td>1,95</td>    
+                    <td>4,99</td>
+                    <td>10,82</td>
+                    <td>2,07</td>
+                    <td>8,12</td>
+                    <td>6,03</td>
+                    <td>3,89</td>
+                    <td>10,91</td>
+                    <td>4,04</td>
+                    <td>8,25</td>
+                    <td>1,08</td>
+                    <td>4,55</td>
+                    <td>9,91</td>
+                    <td>2,34</td>
+                    <td>8,02</td>
+                    <td>3,86</td>
+                    <td>8,14</td>
+                    <td>1,23</td>
+                    <td>5,66</td>
+                    <td>3,69</td>
+                    <td>7,79</td>
+                    <td>1,36</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>   
+                    <th>l,65</th>
+                    <td>8,50</td>
+                    <td>3,66</td>
+                    <td>7,28</td>
+                    <td>3,78</td>
+                    <td>11,67</td>
+                    <td>5,53</td>
+                    <td>11,48</td>
+                    <td>1,87</td>    
+                    <td>5,10</td>
+                    <td>10,99</td>
+                    <td>1,99</td>
+                    <td>8,14</td>
+                    <td>6,35</td>
+                    <td>3,85</td>
+                    <td>11,08</td>
+                    <td>4,07</td>
+                    <td>8,28</td>
+                    <td>1,03</td>
+                    <td>4,70</td>
+                    <td>1O,13</td>
+                    <td>2,28</td>
+                    <td>8,03</td>
+                    <td>3,91</td>
+                    <td>8,20</td>
+                    <td>1,18</td>
+                    <td>5,62</td>
+                    <td>3,76</td>
+                    <td>7,88</td>
+                    <td>1,29</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>               
+                    <th>1,70</th>
+                    <td>8,74</td>
+                    <td>3,58</td>
+                    <td>7,49</td>
+                    <td>3,74</td>
+                    <td>11,79</td>
+                    <td>5,61</td>
+                    <td>11,60</td>
+                    <td>1,79</td>
+                    <td>5,21</td>
+                    <td>11,16</td>
+                    <td>1,91</td>
+                    <td>8,15</td>
+                    <td>6,67</td>
+                    <td>3,81</td>
+                    <td>11,24</td>
+                    <td>4,10</td>
+                    <td>8,30</td>
+                    <td>0,98</td>
+                    <td>4,84</td>
+                    <td>10,34</td>
+                    <td>2.22</td>
+                    <td>8,10</td>
+                    <td>3,95</td>
+                    <td>8,25</td>
+                    <td>1,13</td>
+                    <td>5,58</td>
+                    <td>3,38</td>
+                    <td>7,79</td>
+                    <td>1,21</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>
+                    <th>1,75</th>
+                    <td>8,95</td>
+                    <td>3,53</td>
+                    <td>7,53</td>
+                    <td>3,69</td>
+                    <td>11,88</td>
+                    <td>5,68</td>
+                    <td>11,72</td>
+                    <td>1,74</td>     
+                    <td>5,31</td>
+                    <td>11,30</td>
+                    <td>1,85</td>
+                    <td>8,16</td>
+                    <td>6,97</td>
+                    <td>3,79</td>
+                    <td>11,39</td>
+                    <td>4,12</td>
+                    <td>8,31</td>
+                    <td>0,95</td>      
+                    <td>4,97</td>
+                    <td>10,53</td>
+                    <td>2,15</td>
+                    <td>8,13</td>
+                    <td>3,99</td>
+                    <td>8,30</td>
+                    <td>1,07</td>
+                    <td>5,56</td>
+                    <td>3,88</td>
+                    <td>8,05</td>
+                    <td>1,17</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>       
+                    <th>1,80</th>
+                    <td>9,16</td>
+                    <td>3,47</td>
+                    <td>7,56</td>
+                    <td>3,63</td>
+                    <td>11,96</td>
+                    <td>5,75</td>
+                    <td>11,84</td>
+                    <td>1,68</td>    
+                    <td>5,40</td>
+                    <td>11,43</td>
+                    <td>1,78</td>
+                    <td>8,17</td>
+                    <td>7,27</td>
+                    <td>3,76</td>
+                    <td>11,53</td>
+                    <td>4,14</td>
+                    <td>8,32</td>
+                    <td>0,91</td>   
+                    <td>5,10</td>
+                    <td>10,71</td>
+                    <td>2,08</td>
+                    <td>8,17</td>
+                    <td>4,02</td>
+                    <td>8,34</td>
+                    <td>1,00</td>
+                    <td>5,54</td>
+                    <td>3,92</td>
+                    <td>8,12</td>
+                    <td>1,13</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>         
+                    <th>1,85</th>
+                    <td>9,35</td>
+                    <td>3,38</td>
+                    <td>8,10</td>
+                    <td>3,58</td>
+                    <td>12,05</td>
+                    <td>5,81</td>
+                    <td>11,94</td>
+                    <td>1,64</td>      
+                    <td>5,48</td>
+                    <td>11,55</td>
+                    <td>1,72</td>
+                    <td>8,17</td>
+                    <td>7,55</td>
+                    <td>3,72</td>
+                    <td>11,65</td>
+                    <td>4,15</td>
+                    <td>8,33</td>
+                    <td>0,87</td>   
+                    <td>5,20</td>
+                    <td>10,88</td>
+                    <td>2,02</td>
+                    <td>8,16</td>
+                    <td>4,05</td>
+                    <td>8,38</td>
+                    <td>0,97</td>
+                    <td>5,55</td>
+                    <td>3,96</td>
+                    <td>8,18</td>
+                    <td>1,07</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>       
+                    <th>1,90</th>
+                    <td>9,54</td>
+                    <td>3,29</td>
+                    <td>8,63</td>
+                    <td>3,53</td>
+                    <td>12,14</td>
+                    <td>5,86</td>
+                    <td>12,03</td>
+                    <td>1,59</td>
+                              
+                    <td>5,56</td>
+                    <td>11,67</td>
+                    <td>1,66</td>
+                    <td>8,18</td>
+                    <td>7,82</td>
+                    <td>3,67</td>
+                    <td>11,77</td>
+                    <td>4,16</td>
+                    <td>8,33</td>
+                    <td>0,83</td>
+                    <td>5,30</td>
+                    <td>11,4</td>
+                    <td>1,96</td>
+                    <td>8,14</td>
+                    <td>4,08</td>
+                    <td>8,42</td>
+                    <td>0,94</td>
+                    <td>5,56</td>
+                    <td>3,99</td>
+                    <td>8,24</td>
+                    <td>1,01</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>
+                            
+                    <th>1,95</th>
+                    <td>9,73</td>
+                    <td>3,23</td>
+                    <td>8,86</td>
+                    <td>3,45</td>
+                    <td>12,17</td>
+                    <td>5,90</td>
+                    <td>12,08</td>
+                    <td>1,54</td>
+                    <td>5,63</td>
+                    <td>11,78</td>
+                    <td>1,63</td>
+                    <td>8,19</td>
+                    <td>8,09</td>
+                    <td>3,60</td>
+                    <td>11,83</td>
+                    <td>4,16</td>
+                    <td>8,33</td>
+                    <td>0,80</td>
+                    <td>5,40</td>
+                    <td>11,20</td>
+                    <td>1,88</td>
+                    <td>8,13</td>
+                    <td>4,10</td>
+                    <td>8,45</td>
+                    <td>0,91</td>
+                    <td>5,60</td>
+                    <td>4,02</td>
+                    <td>8,29</td>
+                    <td>0,99</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>       
+                    <th>2,00</th>
+                    <td>9,91</td>
+                    <td>3,16</td>
+                    <td>9,08</td>
+                    <td>3,36</td>
+                    <td>12,20</td>
+                    <td>5,94</td>
+                    <td>12,13</td>
+                    <td>1,48</td>   
+                    <td>5,70</td>
+                    <td>11,89</td>
+                    <td>1,60</td>
+                    <td>8,20</td>
+                    <td>8,35</td>
+                    <td>3,52</td>
+                    <td>11,88</td>
+                    <td>4,17</td>
+                    <td>8,33 </td>
+                    <td>0,76</td>
+                    <td>5,50</td>
+                    <td>11,35</td>
+                    <td>1,80</td>
+                    <td>8,12</td>
+                    <td>4,12</td>         
+                    <td>8,47</td>
+                    <td>0,88</td>
+                    <td>5,64</td>
+                    <td>4,05</td>
+                    <td>8,33</td>
+                    <td>0,96</td>
+                    <td>5,72</td>
+                </tr>
+                <tr>        
+                    <th>>2,0</th>
+                    <td>12,50</td>
+                    <td>3,16</td>
+                    <td>12,50</td>
+                    <td>3,36</td>
+                    <td>12,20</td>
+                    <td>7,03</td>
+                    <td>12,50</td>
+                    <td>1,48</td>
+                    <td>7,03</td>
+                    <td>12,50</td>
+                    <td>1,60</td>
+                    <td>8,20</td>
+                    <td>12,50</td>
+                    <td>3,52</td>
+                    <td>11,88</td>
+                    <td>4,17</td>
+                    <td>8,33</td>
+                    <td>0,76</td>
+                    <td>7,03</td>
+                    <td>12,50</td>
+                    <td>1,80</td>
+                    <td>8,12</td>
+                    <td>4,17</td>
+                    <td>8,33</td>
+                    <td>0,86</td>
+                    <td>5,64</td>
+                    <td>4,17</td>
+                    <td>8,33</td>
+                    <td>0,96</td>
+                    <td>5,72</td>
+                </tr>
+            </tbody>    
+        </table>
+        </div>
+        
+    </main>
+    <script>
+        var btn=0
+        var hasInput = false
+        var mov=-1
+        var mdf=-1
+        var mdfPt
+        var ptx=[]
+        var pty=[]
+        var engaste=['-1','-1','-1','-1'];
+        var cont=0
+        var Δx
+        var Δy
+        var lx
+        var ly
+        var λ
+        var direcao
+        var h
+        var ψ2
+        var ψ3
+        var ψ2vaues=[[1,2.2,2,1.9,1.7,1.7],
+                     [1.2,2.1,1.94,1.86,1.7,1.7],
+                     [1.4,2,1.88,1.82,1.7,1.7],
+                     [1.6,1.9,1.82,1.76,1.7,1.7],
+                     [1.8,1.8,1.76,1.74,1.7,1.7],
+                     [2,1.7,1.7,1.7,1.7,1.7],
+                     [1,2,1.8,1.7,1.4,1.3],
+                     [1.2,1.88,1.72,1.64,1.38,1.3],
+                     [1.4,1.76,1.64,1.58,1.36,1.3],
+                     [1.6,1.64,1.56,1.52,1.34,1.3],
+                     [1.8,1.52,1.48,1.46,1.32,1.3],
+                     [2.0,1.4,1.4,1.4,1.3,1.3],
+                     [1,1.9,1.7,1.5,1.1,1],
+                     [1.2,1.76,1.22,1.42,1.08,1],
+                     [1.4,1.62,1.46,1.34,1.06,1],
+                     [1.6,1.48,1.34,1.26,1.04,1],
+                     [1.8,1.34,1.22,1.16,1.02,1],
+                     [2,1.2,1.1,1.1,1,1],
+                     [1,1.7,1.4,1.1,0.7,0.6],
+                     [1.2,1.45,1.22,0.96,0.66,0.58],
+                     [1.4,1.22,1.04,0.86,0.62,0.54],
+                     [1.6,0.98,0.86,0.74,0.58,0.54],
+                     [1.8,0.74,0.68,0.62,0.54,0.52],
+                     [2,0.5,0.5,0.5,0.5,0.5],
+                     [1,1.5,1.3,1,0.6,0.5],
+                     [1.2,1.46,1.14,0.9,0.58,0.46],
+                     [1.4,1.22,0.96,0.6,0.56,0.42],
+                     [1.6,0.96,0.82,0.7,0.54,0.38],
+                     [1.8,0.96,0.66,0.6,0.52,0.34],
+                     [2.0,0.5,0.5,0.5,0.5,0.3]]
+        var l
+        var L
+        var selec
+        var qsob
+        var qlaje
+        var q
+                    
+        function desenhar(){
+            btn='desenhar'
+        }
+        function modificar(){
+            btn='modificar'
+        }
+        function engastar(){
+            btn='engastar'
+        }
+        function mover(){
+            btn='mover'
+        }
+        
+        function press(){
+            if(btn==='desenhar'){
+                var cor = window.document.getElementById('modificar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+                
+                var cor = window.document.getElementById('engastar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('mover');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('desenhar');
+                cor.style.backgroundColor='grey';
+                cor.style.color='white';
+            }
+            if(btn==='modificar'){
+                var cor = window.document.getElementById('desenhar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('engastar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('mover');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('modificar');
+                cor.style.backgroundColor='grey';
+                cor.style.color='white';
+            }
+            if(btn==='engastar'){
+                var cor = window.document.getElementById('desenhar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('modificar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('mover');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('engastar');
+                cor.style.backgroundColor='grey';
+                cor.style.color='white';
+            }
+            if(btn==='mover'){
+                var cor = window.document.getElementById('desenhar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('modificar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+                
+                var cor = window.document.getElementById('engastar');
+                cor.style.backgroundColor='';
+                cor.style.color='';
+
+                var cor = window.document.getElementById('mover');
+                cor.style.backgroundColor='grey';
+                cor.style.color='white';
+
+                
+            }
+            
+        }
+
+        function calcular(){
+           var mem=document.getElementById('memorial');
+           mem.style.display='block';
+           
+           var test=window.document.getElementById('qsob');
+           qsob= Number(test.value);
+            if(qsob>=2){//Ajustar o valor por aqui
+            window.alert(`O valor preenchido no campo "carga" excede 2 kN/m^2`);
+           }else{
+           
+            if(ptx[1]-ptx[0]>pty[1]-pty[0]){
+                ly=(ptx[1]-ptx[0]);
+                lx=(pty[1]-pty[0]);
+                l=[engaste[1],engaste[3]];
+                L=[engaste[0],engaste[2]];
+               
+            }else{
+                lx=(ptx[1]-ptx[0]);
+                ly=(pty[1]-pty[0]);
+                l=[engaste[0],engaste[2]];
+                L=[engaste[1],engaste[3]];
+            } 
+             λ=(ly/lx).toFixed(2);
+
+             var a= window.document.getElementById('ly');
+             a.innerHTML= ly
+             var a=window.document.getElementById('lx');
+             a.innerHTML= lx
+             var a=window.document.getElementById('λ');
+             a.innerHTML=λ
+
+             if(λ<=2){
+                direcao='b'
+                var a=window.document.getElementById('direcao');
+                a.innerHTML=' bidirecional.(λ<2)'
+             }else{
+                direcao='u'
+                var a=window.document.getElementById('direcao');
+                a.innerHTML=' unidirecional.(λ>2)'
+             }
+            
+             ψ3=window.document.getElementById('aco').value;
+             var a=window.document.getElementById('ψ3');
+             a.innerHTML=ψ3
+            
+             if(direcao==='b'){//Calculo bidirecional
+               
+            //Seleciona coluna
+            if(L[0]===1 && L[1]===1){
+              selec=1
+            }
+            if((L[0]===1 && L[1]==='-1')||(L[0]==='-1' && L[1]===1)){
+              selec=2
+            }
+            if(L[0]==='-1' && L[1]==='-1'){
+              selec=3 
+              console.log(`selec=${selec}`)
+            }
+            
+             if(l[0]===1 && l[1]===1){
+               cont=0
+                do{
+               ψ2=ψ2vaues[cont][selec];
+               
+               console.log(`${ψ2vaues[cont][0]}>${λ}:  ψ2=${ψ2vaues[cont][selec]} cont=${cont}`);
+
+                cont=cont+1
+               }while(ψ2vaues[cont-1][0]<=(λ-0.01));
+               
+            }
+            if((l[0]===1 && l[1]==='-1')||(l[0]==='-1' && l[1]===1)){
+               
+               cont=6
+               do{
+               ψ2=ψ2vaues[cont][selec];
+               
+               console.log(`${ψ2vaues[cont][0]}>${λ}:  ψ2=${ψ2vaues[cont][selec]} cont=${cont}`);
+
+                cont=cont+1
+               }while(ψ2vaues[cont-1][0]<=(λ-0.01));
+
+            }
+            if(l[0]==='-1' && l[0]==='-1'){
+              
+              cont=12
+                do{
+               ψ2=ψ2vaues[cont][selec];
+               
+               console.log(`${ψ2vaues[cont][0]}>${λ}:  ψ2=${ψ2vaues[cont][selec]} cont=${cont}`);
+
+                cont=cont+1
+               }while(ψ2vaues[cont-1][0]<=(λ-0.01));
+               ψ2=ψ2vaues[cont-1][selec];
+            }
+            cont=0
+            var a= window.document.getElementById('ψ2');
+             a.innerHTML= ψ2
+            
+            //balanço nao sei se vou calcular?
+            h=((lx)/(ψ2*ψ3)).toFixed(2);
+            if(h<8){
+                var a= window.document.getElementById('h');
+                a.innerHTML= `${h}cm    Como ${h} < 8 adotamos a altura minima de 8`
+                h=8 
+            }else{
+            var a= window.document.getElementById('h');
+             a.innerHTML= h    
+            }
+             var a= window.document.getElementById('lx2');
+             a.innerHTML= lx
+            var a= window.document.getElementById('ψ22');
+             a.innerHTML= ψ2
+             var a= window.document.getElementById('ψ32');
+             a.innerHTML= ψ3
+
+             //Somatorio das cargas
+             
+             var a= window.document.getElementById('qsoma');
+             a.innerHTML= qsob +" kN/m&#178"
+             
+             var a= window.document.getElementById('h2');
+             a.innerHTML=h +" cm"
+
+             qlaje=25*(h/100)
+             
+             var a= window.document.getElementById('qlaje');
+             a.innerHTML= qlaje +" kN/m&#178"
+
+             q=(qlaje + qsob).toFixed(2);
+
+             var a= window.document.getElementById('qtotal');
+             a.innerHTML= q +" kN/m&#178"
+
+            }
+            }
+        }
+ 
+        function entrar(){
+            
+        }
+        function moveu(){
+            var getXCoord = event.offsetX;
+            var getYCoord = event.offsetY;
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            if(btn==="desenhar" && ptx.length===1){
+                ctx.clearRect(0, 0, 800, 500);
+                ctx.strokeRect(ptx[0],pty[0], (event.offsetX-ptx[0]),(event.offsetY-pty[0]));
+                ctx.font = "15px arial";
+                ctx.fillText(`${event.offsetX-ptx[0]}`,ptx[0]+(event.offsetX-ptx[0])/2, pty[0]-5);
+                ctx.fillText(`${event.offsetY-pty[0]}`,ptx[0]-30,pty[0]+(event.offsetY-pty[0])/2);
+            }
+            if(btn==='modificar' && mdf===1){
+                ctx.clearRect(0, 0, 800, 500);
+                Δx=ptx[1]-getXCoord;
+                Δy=pty[1]-getYCoord;
+                if(mdfPt===1){
+                    ctx.strokeRect(getXCoord,getYCoord, ptx[1]-getXCoord ,pty[1]-getYCoord);
+                    ctx.fillText(`${Δx}`,getXCoord+Δx/2, event.offsetY-5);
+                    ctx.fillText(`${Δy}`,getXCoord-30,getYCoord+Δy/2); 
+                }
+                if(mdfPt===2){
+                    ctx.strokeRect(ptx[0],getYCoord,getXCoord-ptx[0],pty[1]-getYCoord);
+                    
+                    ctx.fillText(`${getXCoord-ptx[0]}`,ptx[0]+(getXCoord-ptx[0])/2, getYCoord-5);
+                    
+                    ctx.fillText(`${pty[1]-getYCoord}`,ptx[0]-30,pty[1]-(pty[1]-getYCoord)/2);
+                }
+                if(mdfPt===3){
+                    ctx.clearRect(0, 0, 800, 500);
+                    ctx.strokeRect(ptx[0],pty[0], (getXCoord-ptx[0]),(getYCoord-pty[0]));
+                    
+                    ctx.fillText(`${getXCoord-ptx[0]}`,ptx[0]+(getXCoord-ptx[0])/2, pty[0]-5);
+                    
+                    ctx.fillText(`${getYCoord-pty[0]}`,ptx[0]-30,pty[0]+(getYCoord-pty[0])/2);
+                }
+                if(mdfPt===4){
+                    ctx.clearRect(0, 0, 800, 500);
+                    ctx.strokeRect(getXCoord,pty[0], ptx[1]-getXCoord,getYCoord-pty[0]);
+
+                    ctx.fillText(`${ptx[1]-getXCoord}`,getXCoord+(ptx[1]-getXCoord)/2, pty[0]-5);
+                    
+                    ctx.fillText(`${getYCoord-pty[0]}`,getXCoord-30,pty[0]+(getYCoord-pty[0])/2);
+                }
+            }
+            if(btn==='mover' && mov===1){
+                ctx.clearRect(0, 0, 800, 500);
+                ctx.strokeRect(getXCoord,getYCoord, Δx ,Δy);
+                ctx.font = "15px arial";
+                ctx.fillText(`${Δx}`,getXCoord+Δx/2, event.offsetY-5);
+                ctx.fillText(`${Δy}`,getXCoord-30,getYCoord+Δy/2);     
+            }
+        }
+        function clicar(){
+            var getXCoord = event.offsetX;
+            var getYCoord = event.offsetY;
+            
+            
+            if(btn==='desenhar' && ptx.length<2){
+                var registrando=ptx.push(getXCoord);
+                var registrando=pty.push(getYCoord);
+            }
+            if(btn==='modificar' && getXCoord<ptx[0]+5 && getXCoord>ptx[0]-5 && getYCoord<pty[0]+5 && getYCoord>pty[0]-5){
+                mdf=mdf*-1
+                mdfPt=1
+            }
+            if(btn==='modificar' && getXCoord<ptx[1]+5 && getXCoord>ptx[1]-5 && getYCoord<pty[0]+5 && getYCoord>pty[0]-5){
+                mdf=mdf*-1
+                mdfPt=2
+            }
+            if(btn==='modificar' && getXCoord<ptx[1]+5 && getXCoord>ptx[1]-5 && getYCoord<pty[1]+5 && getYCoord>pty[1]-5){
+                mdf=mdf*-1
+                mdfPt=3
+            }
+            if(btn==='modificar' && getXCoord<ptx[0]+5 && getXCoord>ptx[0]-5 && getYCoord<pty[1]+5 && getYCoord>pty[1]-5){
+                mdf=mdf*-1
+                mdfPt=4
+            }
+            if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>pty[0]-5 && getYCoord<pty[0]+5 && getYCoord>pty[0]-5){
+                engaste[0]=engaste[0]*-1
+                
+            }
+            if(btn==='engastar' && getXCoord>ptx[1]-5 && getYCoord<ptx[1]+5 && getYCoord>pty[0] && getYCoord<pty[1]){
+                engaste[1]=engaste[1]*-1
+                
+            }
+            if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>pty[1] && getYCoord<pty[1]+5 && getYCoord>pty[0]-5 ){
+                engaste[2]=engaste[2]*-1
+                
+                
+            }
+            if(btn==='engastar' && getXCoord>=ptx[0]-5 && getXCoord<=ptx[0]+5 && getYCoord>pty[0] && getYCoord<pty[1]){
+                engaste[3]=engaste[3]*-1
+            }
+            if(btn==='engastar'){
+                const canvas = document.getElementById("canvas");
+                const ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, 800, 500);
+                ctx.strokeRect(ptx[0],pty[0],ptx[1]-ptx[0],pty[1]-pty[0]);
+
+                ctx.fillText(`${ptx[1]-ptx[0]}`,ptx[0]+(ptx[1]-ptx[0])/2, pty[0]-5);
+
+                ctx.fillText(`${pty[1]-pty[0]}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);  
+            }
+            if(btn==='mover' && mov===-1 && getXCoord<ptx[0]+Δx && getXCoord> ptx[0] && getYCoord>pty[0] && getYCoord<pty[0]+Δy){
+                mov=mov*-1  
+            }
+            if(btn==='modificar' && getXCoord>(ptx[0]+(ptx[1]-ptx[0])/2) && getXCoord<(ptx[0]+(ptx[1]-ptx[0])/2)+30 && getYCoord-pty[0]<-5 && getYCoord-pty[0]>-16){
+                //dentro do texto x
+                if (hasInput) return;
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.style.position = 'fixed';
+                input.style.left = (getXCoord) + 'px';
+                input.style.top = (getYCoord) + 'px';
+                input.style.width='30px'
+                input.maxLength='3'
+                
+                input.onkeydown = handleEnterx;
+
+                document.body.appendChild(input);
+            }
+            if(btn==='modificar' && getXCoord-ptx[0]>-30 && getXCoord-ptx[0]<-6 && getYCoord<(pty[0]+(pty[1]-pty[0])/2) && getYCoord>(pty[0]+(pty[1]-pty[0])/2)-20){
+                //dentro do texto y
+                if (hasInput) return;
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.style.position = 'fixed';
+                input.style.left = (getXCoord) + 'px';
+                input.style.top = (getYCoord) + 'px';
+                input.style.width='30px'
+                input.maxLength='3'
+                
+                input.onkeydown = handleEntery;
+
+                document.body.appendChild(input);
+            } 
+        }
+        function handleEnterx(e) {
+        var keyCode = e.keyCode;
+        if (keyCode === 13 && !isNaN(this.value)===true) {
+            ptx[1]=Number(this.value)+ptx[0];
+            document.body.removeChild(this);
+            hasInput = false;
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, 800, 500);
+            
+            ctx.strokeRect(ptx[0],pty[0],(ptx[1]-ptx[0]),(pty[1]-pty[0]));
+
+            ctx.fillText(`${ptx[1]-ptx[0]}`,ptx[0]+(ptx[1]-ptx[0])/2, pty[0]-5);
+
+            ctx.fillText(`${pty[1]-pty[0]}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);     
+        }
+        }
+        function handleEntery(e) {
+        var keyCode = e.keyCode;
+        if (keyCode === 13 && !isNaN(this.value)===true) {
+            pty[1]=Number(this.value)+pty[0];
+            document.body.removeChild(this);
+            hasInput = false;
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, 800, 500);
+            
+            ctx.strokeRect(ptx[0],pty[0],(ptx[1]-ptx[0]),(pty[1]-pty[0]));
+
+            ctx.fillText(`${ptx[1]-ptx[0]}`,ptx[0]+(ptx[1]-ptx[0])/2, pty[0]-5);
+
+            ctx.fillText(`${pty[1]-pty[0]}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);     
+        }
+        }
+
+        function soltar(){
+            var getXCoord = event.offsetX;
+            var getYCoord = event.offsetY;
+            if(btn==='mover' && mov===1 ){
+                Δx=ptx[1]-ptx[0];
+                Δy=pty[1]-pty[0];
+                mov=mov*-1
+                ptx[1]=getXCoord+Δx;
+                pty[1]=getYCoord+Δy;
+                ptx[0]=getXCoord;
+                pty[0]=getYCoord;
+                
+            }
+            if(btn==='modificar' && mdf===1){
+                mdf=mdf*-1
+                if(mdfPt===1){
+                    ptx[0]=getXCoord;
+                    pty[0]=getYCoord;
+                }
+                if(mdfPt===2){
+                    pty[0]=getYCoord;
+                    ptx[1]=getXCoord;
+                }
+                if(mdfPt===3){
+                    ptx[1]=getXCoord;
+                    pty[1]=getYCoord;
+                }
+                if(mdfPt===4){
+                    pty[1]=getYCoord;
+                    ptx[0]=getXCoord;
+                }
+                Δx=ptx[1]-ptx[0];
+                Δy=pty[1]-pty[0];
+            }
+            if(btn==='desenhar' && ptx.length<2){
+                var registrando=ptx.push(getXCoord);
+                var registrando=pty.push(getYCoord);
+                Δx=ptx[1]-ptx[0];
+                Δy=pty[1]-pty[0];
+                
+            }
+            cont=0
+            do{
+                const canvas = document.getElementById("canvas");
+                const ctx = canvas.getContext("2d");
+                if(engaste[0]===1){
+                    ctx.beginPath();
+                    ctx.moveTo(ptx[0]+cont,pty[0]);
+                    ctx.lineTo(ptx[0]+cont+3,pty[0]-4);
+                    ctx.fill();
+                }
+                cont=cont+3
+            }while(cont<(ptx[1]-ptx[0]));
+                cont=0
+            do{
+                const canvas = document.getElementById("canvas");
+                const ctx = canvas.getContext("2d");
+                if(engaste[1]===1){
+                    ctx.beginPath();
+                    ctx.moveTo(ptx[1],pty[0]+cont);
+                    ctx.lineTo(ptx[1]+4,pty[0]+cont+3);
+                    ctx.fill();
+                    
+                }
+                cont=cont+3
+            }while(cont<(pty[1]-pty[0]));
+                cont=0
+            do{
+                const canvas = document.getElementById("canvas");
+                const ctx = canvas.getContext("2d");
+                if(engaste[2]===1){
+                    ctx.beginPath();
+                    ctx.moveTo(ptx[0]+cont,pty[1]);
+                    ctx.lineTo(ptx[0]+cont-3,pty[1]+4);
+                    ctx.fill();
+                }
+                cont=cont+3
+            }while(cont<(ptx[1]-ptx[0]));
+            cont=0
+            do{
+                const canvas = document.getElementById("canvas");
+                const ctx = canvas.getContext("2d");
+                if(engaste[3]===1){
+                    ctx.beginPath();
+                    ctx.moveTo(ptx[0],pty[0]+cont);
+                    ctx.lineTo(ptx[0]-4,pty[0]+cont-3);
+                    ctx.fill();
+                    
+                }
+                cont=cont+3
+            }while(cont<(pty[1]-pty[0]));
+            
+            
+        }
+        function sair(){
+
+        }
+
+    </script>
+</body>
+</html>
