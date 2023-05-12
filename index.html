@@ -1710,7 +1710,7 @@
             }
             if(L[0]==='-1' && L[1]==='-1'){
               selec=3 
-              console.log(`selec=${selec}`)
+              
             }
             
              if(l[0]===1 && l[1]===1){
@@ -1718,7 +1718,7 @@
                 do{
                ψ2=ψ2vaues[cont][selec];
                
-               console.log(`${ψ2vaues[cont][0]}>${λ}:  ψ2=${ψ2vaues[cont][selec]} cont=${cont}`);
+              
 
                 cont=cont+1
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
@@ -1730,7 +1730,6 @@
                do{
                ψ2=ψ2vaues[cont][selec];
                
-               console.log(`${ψ2vaues[cont][0]}>${λ}:  ψ2=${ψ2vaues[cont][selec]} cont=${cont}`);
 
                 cont=cont+1
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
@@ -1742,7 +1741,7 @@
                 do{
                ψ2=ψ2vaues[cont][selec];
                
-               console.log(`${ψ2vaues[cont][0]}>${λ}:  ψ2=${ψ2vaues[cont][selec]} cont=${cont}`);
+              
 
                 cont=cont+1
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
@@ -2013,7 +2012,9 @@
                 
             }
             cont=0
+            console.log(`Ate aqui tudo bem 1) engaste=${engaste}`);
             do{
+                console.log(`Ate aqui tudo bem, repete engaste=${engaste})`);
                 const canvas = document.getElementById("canvas");
                 const ctx = canvas.getContext("2d");
                 if(engaste[0]===1 && ptx[1]-ptx[0]>0){
