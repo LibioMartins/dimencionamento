@@ -1664,7 +1664,7 @@
             window.alert(`O valor preenchido no campo "carga" excede 2 kN/m^2`);
            }else{
            
-            if(ptx[1]-ptx[0]>pty[1]-pty[0]){
+            if(Math.abs(ptx[1]-ptx[0])>Math.abs(pty[1]-pty[0])){
                 ly=Math.abs(ptx[1]-ptx[0]);
                 lx=Math.abs(pty[1]-pty[0]);
                 l=[engaste[1],engaste[3]];
@@ -1705,10 +1705,10 @@
             if(L[0]===1 && L[1]===1){
               selec=1
             }
-            if((L[0]===1 && L[1]==='-1')||(L[0]==='-1' && L[1]===1)){
+            if((L[0]===1 && (L[1]==='-1'||L[1]===-1))||((L[0]==='-1'||L[0]===-1) && L[1]===1)){
               selec=2
             }
-            if(L[0]==='-1' && L[1]==='-1'){
+            if((L[0]==='-1'||L[0]===-1) && (L[1]==='-1'||L[1]===-1)){
               selec=3 
               
             }
@@ -1724,7 +1724,7 @@
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
                
             }
-            if((l[0]===1 && l[1]==='-1')||(l[0]==='-1' && l[1]===1)){
+            if((l[0]===1 && (l[1]==='-1'||l[1]===-1))||((l[0]==='-1'||l[0]===-1) && l[1]===1)){
                
                cont=6
                do{
@@ -1735,7 +1735,7 @@
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
 
             }
-            if(l[0]==='-1' && l[0]==='-1'){
+            if((l[0]==='-1'||l[0]===-1) && (l[0]==='-1'||l[0]===-1)){
               
               cont=12
                 do{
@@ -1863,34 +1863,61 @@
                 mdf=mdf*-1
                 mdfPt=1
             }
-            if(btn==='modificar' && getXCoord<ptx[1]+5 && getXCoord>ptx[1]-5 && getYCoord<pty[0]+5 && getYCoord>pty[0]-5){
+            if(btn==='modificar' && getXCoord<ptx[1]+5 && getXCoord>ptx[1]-5 && getYCoord<=pty[0]+5 && getYCoord>=pty[0]-5){
                 mdf=mdf*-1
                 mdfPt=2
             }
-            if(btn==='modificar' && getXCoord<ptx[1]+5 && getXCoord>ptx[1]-5 && getYCoord<pty[1]+5 && getYCoord>pty[1]-5){
+            if(btn==='modificar' && getXCoord<ptx[1]+5 && getXCoord>ptx[1]-5 && getYCoord<=pty[1]+5 && getYCoord>=pty[1]-5){
                 mdf=mdf*-1
                 mdfPt=3
             }
-            if(btn==='modificar' && getXCoord<ptx[0]+5 && getXCoord>ptx[0]-5 && getYCoord<pty[1]+5 && getYCoord>pty[1]-5){
+            if(btn==='modificar' && getXCoord<ptx[0]+5 && getXCoord>ptx[0]-5 && getYCoord<=pty[1]+5 && getYCoord>=pty[1]-5){
                 mdf=mdf*-1
                 mdfPt=4
             }
-            if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>pty[0]-5 && getYCoord<pty[0]+5 && getYCoord>pty[0]-5){
+            if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>=pty[0]-5 && getYCoord<=pty[0]+5){
                 engaste[0]=engaste[0]*-1
                 
             }
-            if(btn==='engastar' && getXCoord>ptx[1]-5 && getYCoord<ptx[1]+5 && getYCoord>pty[0] && getYCoord<pty[1]){
+            if(btn==='engastar' && getXCoord<ptx[0] && getXCoord>ptx[1] && getYCoord>pty[0]-5 && getYCoord<pty[0]+5){
+                engaste[0]=engaste[0]*-1
+                
+            }
+            if(btn==='engastar' && getXCoord>=ptx[1]-5 && getYCoord<=ptx[1]+5 && getYCoord>pty[0] && getYCoord<pty[1]){
                 engaste[1]=engaste[1]*-1
                 
             }
-            if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>pty[1] && getYCoord<pty[1]+5 && getYCoord>pty[0]-5 ){
-                engaste[2]=engaste[2]*-1
-                
-                
+            if(btn==='engastar' && getXCoord>=ptx[0]-5 && getYCoord<=ptx[0]+5 && getYCoord<pty[0] && getYCoord>pty[1]){
+                const canvas = document.getElementById("canvas");
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle="purple"
+                engaste[3]=engaste[3]*-1
+                //problema aqui
             }
+            if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>pty[1] && getYCoord<=pty[1]+5 && getYCoord>=pty[0]-5 ){
+                engaste[2]=engaste[2]*-1
+            }
+            
+            if(btn==='engastar' && getXCoord<ptx[0] && getXCoord>ptx[1] && getYCoord>pty[1] && getYCoord>pty[1]-5 && getYCoord<pty[1]+5 ){
+                engaste[2]=engaste[2]*-1
+                const canvas = document.getElementById("canvas");
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle="red"
+               
+            }
+            //fazer um ou la no '-1'||-1
+            //resolver la no engaste 3
             if(btn==='engastar' && getXCoord>=ptx[0]-5 && getXCoord<=ptx[0]+5 && getYCoord>pty[0] && getYCoord<pty[1]){
                 engaste[3]=engaste[3]*-1
+               
             }
+            if(btn==='engastar' && getXCoord>=ptx[1]-5 && getXCoord<=ptx[1]+5 && getYCoord<pty[0] && getYCoord>pty[1]){
+                engaste[1]=engaste[1]*-1
+
+            }
+            
+
+            
             if(btn==='engastar'){
                 const canvas = document.getElementById("canvas");
                 const ctx = canvas.getContext("2d");
@@ -2012,24 +2039,28 @@
                 
             }
             cont=0
-            console.log(`Ate aqui tudo bem 1) engaste=${engaste}`);
+            
             do{
-                console.log(`Ate aqui tudo bem, repete engaste=${engaste})`);
+                
                 const canvas = document.getElementById("canvas");
                 const ctx = canvas.getContext("2d");
                 if(engaste[0]===1 && ptx[1]-ptx[0]>0){
+                    
+                   
                     ctx.beginPath();
                     ctx.moveTo(ptx[0]+cont,pty[0]);
                     ctx.lineTo(ptx[0]+cont+3,pty[0]-4);
-                    ctx.fill();
+                    ctx.stroke();
+                    
                 }
                 if(engaste[0]===1 && ptx[1]-ptx[0]<0){
                     ctx.beginPath();
                     ctx.moveTo(ptx[1]+cont,pty[0]);
                     ctx.lineTo(ptx[1]+cont-3,pty[0]+4);
-                    ctx.fill();
+                    ctx.stroke();
                 }
-                cont=cont+3
+                cont=cont+5
+                
             }while(cont<Math.abs(ptx[1]-ptx[0]));
                 cont=0
                 
@@ -2040,17 +2071,17 @@
                     ctx.beginPath();
                     ctx.moveTo(ptx[1],pty[0]+cont);
                     ctx.lineTo(ptx[1]+4,pty[0]+cont+3);
-                    ctx.fill();
+                    ctx.stroke();
 
                 }
                 if(engaste[1]===1 && pty[1]-pty[0]<0){
                     ctx.beginPath();
                     ctx.moveTo(ptx[1],pty[1]+cont);
                     ctx.lineTo(ptx[1]-4,pty[1]+cont-3);
-                    ctx.fill();
+                    ctx.stroke();
 
                 }
-                cont=cont+3
+                cont=cont+5
             }while(cont<Math.abs(pty[1]-pty[0]));
                 cont=0
             do{
@@ -2060,15 +2091,15 @@
                     ctx.beginPath();
                     ctx.moveTo(ptx[0]+cont,pty[1]);
                     ctx.lineTo(ptx[0]+cont-3,pty[1]+4);
-                    ctx.fill();
+                    ctx.stroke();
                 }
                 if(engaste[2]===1 && ptx[1]-ptx[0]<0){
                     ctx.beginPath();
                     ctx.moveTo(ptx[1]+cont,pty[1]);
                     ctx.lineTo(ptx[1]+cont+3,pty[1]-4);
-                    ctx.fill();
+                    ctx.stroke();
                 }
-                cont=cont+3
+                cont=cont+5
             }while(cont<Math.abs(ptx[1]-ptx[0]));
             cont=0
             do{
@@ -2078,15 +2109,15 @@
                     ctx.beginPath();
                     ctx.moveTo(ptx[0],pty[0]+cont);
                     ctx.lineTo(ptx[0]-4,pty[0]+cont-3);
-                    ctx.fill();   
+                    ctx.stroke();  
                 }
                 if(engaste[3]===1 && pty[1]-pty[0]<0){
                     ctx.beginPath();
                     ctx.moveTo(ptx[0],pty[1]+cont);
                     ctx.lineTo(ptx[0]+4,pty[1]+cont+3);
-                    ctx.fill();   
+                    ctx.stroke();   
                 }
-                cont=cont+3
+                cont=cont+5
             }while(cont<Math.abs(pty[1]-pty[0]));
             
             
