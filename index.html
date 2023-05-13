@@ -1485,6 +1485,38 @@
                 </tr>
             </tbody>    
         </table>
+        <math>
+            <msub>
+                <mn>μ</mn>
+                <mn>x</mn>
+            </msub>
+            <mo>=</mo>
+            <mi id="μx"></mi>
+        </math>
+        <math>
+            <msub>
+                <mn>μ'</mn>
+                <mn>x</mn>
+            </msub>
+            <mo>=</mo>
+            <mi id="μ'x"></mi>
+        </math>
+        <math>
+            <msub>
+                <mn>μ</mn>
+                <mn>y</mn>
+            </msub>
+            <mo>=</mo>
+            <mi id="μy"></mi>
+        </math>
+        <math>
+            <msub>
+                <mn>μ'</mn>
+                <mn>y</mn>
+            </msub>
+            <mo>=</mo>
+            <mi id="μ'y"></mi>
+        </math>
         </div>
         
     </main>
@@ -1496,7 +1528,7 @@
         var mdfPt
         var ptx=[]
         var pty=[]
-        var engaste=['-1','-1','-1','-1'];
+        var engaste=[-1,-1,-1,-1];
         var cont=0
         var Δx
         var Δy
@@ -1566,6 +1598,10 @@
                      [2.00,9.91,3.16,9.08,3.36,12.20,5.94,12.13,1.48,5.70,11.89,1.60,8.20,8.35,3.52,11.88,4.17,8.33,0.76,5.50,11.35,1.80,8.12,4.12,8.47,0.88,5.64,4.05,8.33,0.96,5.72],
                      [2.01,12.50,3.16,12.50,3.36,12.20,7.03,12.50,1.48,7.03,12.50,1.60,8.20,12.50,3.52,11.88,4.17,8.33,0.76,7.03,12.50,1.80,8.12,4.17,8.33,0.86,5.64,4.17,8.33,0.96,5.72],
                     ];
+                    var μx
+                    var μy
+                    var μx2
+                    var μy2
                     
         function desenhar(){
             btn='desenhar'
@@ -1705,10 +1741,10 @@
             if(L[0]===1 && L[1]===1){
               selec=1
             }
-            if((L[0]===1 && (L[1]==='-1'||L[1]===-1))||((L[0]==='-1'||L[0]===-1) && L[1]===1)){
+            if((L[0]===1 && (L[1]===-1))||((L[0]===-1) && L[1]===1)){
               selec=2
             }
-            if((L[0]==='-1'||L[0]===-1) && (L[1]==='-1'||L[1]===-1)){
+            if((L[0]===-1) && (L[1]===-1)){
               selec=3 
               
             }
@@ -1724,7 +1760,7 @@
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
                
             }
-            if((l[0]===1 && (l[1]==='-1'||l[1]===-1))||((l[0]==='-1'||l[0]===-1) && l[1]===1)){
+            if((l[0]===1 && (l[1]===-1))||((l[0]===-1) && l[1]===1)){
                
                cont=6
                do{
@@ -1735,14 +1771,11 @@
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
 
             }
-            if((l[0]==='-1'||l[0]===-1) && (l[0]==='-1'||l[0]===-1)){
+            if((l[0]===-1) && (l[1]===-1)){
               
               cont=12
                 do{
                ψ2=ψ2vaues[cont][selec];
-               
-              
-
                 cont=cont+1
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
                ψ2=ψ2vaues[cont-1][selec];
@@ -1751,7 +1784,6 @@
             var a= window.document.getElementById('ψ2');
              a.innerHTML= ψ2
             
-            //balanço nao sei se vou calcular?
             h=((lx)/(ψ2*ψ3)).toFixed(2);
             if(h<8){
                 var a= window.document.getElementById('h');
@@ -1786,7 +1818,89 @@
              var a= window.document.getElementById('qtotal');
              a.innerHTML= q +" kN/m&#178"
              
-             //operar com os valores da tabela μvalues, usar a outra como base?
+             //Encontra os valores de μ 
+             cont=0
+             μx=undefined
+             μx2=undefined
+             μy=undefined
+             μy2=undefined
+             console.log(`${L}, ${l}`);
+             if(((l[0]===-1 && l[1]===-1))&&((L[0]===-1 && L[1]===-1))){
+                do{
+                    μx=μvalues[cont][1];
+                    μy=μvalues[cont][2];
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             if(((L[0]===1 && L[1]===-1)||(L[0]===-1 && L[1]===1))&&(l[0]===-1 && l[1]===-1)){
+                do{
+                    μx=μvalues[cont][3];
+                    μy=μvalues[cont][4];
+                    μy2=μvalues[cont][5]
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             
+             if(((l[0]===1 && l[1]===-1)||(l[0]===-1 && l[1]===1))&&(L[0]===-1 && L[1]===-1)){
+                do{
+                    μx=μvalues[cont][6];
+                    μx2=μvalues[cont][7];
+                    μy=μvalues[cont][8]
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             if(((L[0]===1 && L[1]===-1)||(L[0]===-1 && L[1]===1))&&(l[0]===1 && l[1]===-1)||(l[0]===-1 && l[1]===1)){
+                do{
+                    μx=μvalues[cont][9];
+                    μx2=μvalues[cont][10];
+                    μy=μvalues[cont][11];
+                    μy2=μvalues[cont][12];
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             if((L[0]===-1 && L[1]===-1)&&(l[0]===1 && l[1]===1)){
+                do{
+                    μx=μvalues[cont][13];
+                    μx2=μvalues[cont][14];
+                    μy=μvalues[cont][15]
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             if(((L[0]===1 && L[1]===-1)||(L[0]===-1 && L[1]===1))&&(l[0]===1 && l[1]===1)){
+                do{
+                    μx=μvalues[cont][16];
+                    μx2=μvalues[cont][17];
+                    μy=μvalues[cont][18];
+                    μy2=μvalues[cont][19];
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             if(((l[0]===1 && l[1]===-1)||(l[0]===-1 && l[1]===1))&&(L[0]===1 && L[1]===1)){
+                do{
+                    μx=μvalues[cont][20];
+                    μx2=μvalues[cont][21];
+                    μy=μvalues[cont][22];
+                    μy2=μvalues[cont][23];
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             if(((l[0]===1 && l[1]===1))&&((L[0]===1 && L[1]===1))){
+                do{
+                    μx=μvalues[cont][24];
+                    μx2=μvalues[cont][25];
+                    μy=μvalues[cont][26];
+                    μy2=μvalues[cont][27];
+                    cont=cont+1
+                }while(μvalues[cont-1][0]<=(λ-0.01));
+             }
+             var a= window.document.getElementById('μx');
+             a.innerHTML= μx
+             var a= window.document.getElementById("μ'x");
+             a.innerHTML= μx2
+             var a= window.document.getElementById('μy');
+             a.innerHTML= μy
+             var a= window.document.getElementById("μ'y");
+             a.innerHTML= μy2
             }
             }
         }
