@@ -43,7 +43,6 @@
         <input type="button" id="engastar" value="Engastar" onclick="engastar()">
         <input type="button"id="mover" value="Mover" onclick="mover()">
         <select id="fck" name="fck">
-                
                 <option value="20">Fck-20</option>
                 <option value="25">Fck-25</option>
                 <option value="30">Fck-30</option>
@@ -1520,7 +1519,7 @@
         </div>
         
     </main>
-    <script>
+    <script>//E agora repensar tudo dnv ou ir mdf aos poucos?
         var btn=0
         var hasInput = false
         var mov=-1
@@ -1598,10 +1597,16 @@
                      [2.00,9.91,3.16,9.08,3.36,12.20,5.94,12.13,1.48,5.70,11.89,1.60,8.20,8.35,3.52,11.88,4.17,8.33,0.76,5.50,11.35,1.80,8.12,4.12,8.47,0.88,5.64,4.05,8.33,0.96,5.72],
                      [2.01,12.50,3.16,12.50,3.36,12.20,7.03,12.50,1.48,7.03,12.50,1.60,8.20,12.50,3.52,11.88,4.17,8.33,0.76,7.03,12.50,1.80,8.12,4.17,8.33,0.86,5.64,4.17,8.33,0.96,5.72],
                     ];
-                    var μx
-                    var μy
-                    var μx2
-                    var μy2
+        var μx
+        var μy
+        var μx2
+        var μy2
+        var m
+        //Esses aqui vao ser as arrays das lajes dos engastes, criar elas com o click nos engastes.
+        var ptx2=[0,0,0,0,0,0,0,0];
+        var pty2=[0,0,0,0,0,0,0,0];
+        
+        //Desenhar a partir dos engastes.
                     
         function desenhar(){
             btn='desenhar'
@@ -1684,12 +1689,9 @@
                 var cor = window.document.getElementById('mover');
                 cor.style.backgroundColor='grey';
                 cor.style.color='white';
-
-                
             }
             
         }
-
         function calcular(){
            var mem=document.getElementById('memorial');
            mem.style.display='block';
@@ -1765,7 +1767,6 @@
                cont=6
                do{
                ψ2=ψ2vaues[cont][selec];
-               
 
                 cont=cont+1
                }while(ψ2vaues[cont-1][0]<=(λ-0.01));
@@ -1824,7 +1825,6 @@
              μx2=undefined
              μy=undefined
              μy2=undefined
-             console.log(`${L}, ${l}`);
              if(((l[0]===-1 && l[1]===-1))&&((L[0]===-1 && L[1]===-1))){
                 do{
                     μx=μvalues[cont][1];
@@ -1901,6 +1901,11 @@
              a.innerHTML= μy
              var a= window.document.getElementById("μ'y");
              a.innerHTML= μy2
+             //Balanceamento ou compensaçao
+             
+             //momento - 0.8x μ'x
+
+             //momento +
             }
             }
         }
@@ -1964,10 +1969,6 @@
         function clicar(){
             var getXCoord = event.offsetX;
             var getYCoord = event.offsetY;
-            if(ptx[1]-ptx[0]===0){
-                ptx=[];
-                pty=[];
-            }
             
             if(btn==='desenhar' && ptx.length<2){
                 var registrando=ptx.push(getXCoord);
@@ -1989,49 +1990,80 @@
                 mdf=mdf*-1
                 mdfPt=4
             }
+           
+
             if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>=pty[0]-5 && getYCoord<=pty[0]+5){
                 engaste[0]=engaste[0]*-1
+                console.log(`topo`);
+                ptx2[1]=ptx[0];
+                ptx2[0]=ptx[1];
+                pty2[0]=pty[0];
+                pty2[1]=pty[0]-100;
                 
             }
             if(btn==='engastar' && getXCoord<ptx[0] && getXCoord>ptx[1] && getYCoord>pty[0]-5 && getYCoord<pty[0]+5){
                 engaste[0]=engaste[0]*-1
+                console.log(`topo2`);
+                ptx2[1]=ptx[1];
+                ptx2[0]=ptx[0];
+                pty2[0]=pty[0];
+                pty2[1]=pty[0]+100;
                 
             }
             if(btn==='engastar' && getXCoord>=ptx[1]-5 && getYCoord<=ptx[1]+5 && getYCoord>pty[0] && getYCoord<pty[1]){
                 engaste[1]=engaste[1]*-1
+                console.log(`leste`);
+                ptx2[2]=ptx[1];
+                ptx2[3]=ptx[1]+100;
+                pty2[2]=pty[0];
+                pty2[3]=pty[1];
                 
             }
-            if(btn==='engastar' && getXCoord>=ptx[0]-5 && getYCoord<=ptx[0]+5 && getYCoord<pty[0] && getYCoord>pty[1]){
-                const canvas = document.getElementById("canvas");
-                const ctx = canvas.getContext("2d");
-                ctx.fillStyle="purple"
+            if(btn==='engastar' && getXCoord>=ptx[0]-5 && getXCoord<=ptx[0]+5 && getYCoord<pty[0] && getYCoord>pty[1]){
                 engaste[3]=engaste[3]*-1
-                //problema aqui
+                console.log(`leste2`);
+                ptx2[2]=ptx[0];
+                ptx2[3]=ptx[0]+100;
+                pty2[2]=pty[0];
+                pty2[3]=pty[1];
+
+
             }
             if(btn==='engastar' && getXCoord>ptx[0] && getXCoord<ptx[1] && getYCoord>pty[1] && getYCoord<=pty[1]+5 && getYCoord>=pty[0]-5 ){
                 engaste[2]=engaste[2]*-1
+                console.log(`sul`);
+                ptx2[4]=ptx[0];
+                ptx2[5]=ptx[1];
+                pty2[4]=pty[1];
+                pty2[5]=pty[1]+100;
             }
             
-            if(btn==='engastar' && getXCoord<ptx[0] && getXCoord>ptx[1] && getYCoord>pty[1] && getYCoord>pty[1]-5 && getYCoord<pty[1]+5 ){
+            if(btn==='engastar' && getXCoord<ptx[0] && getXCoord>ptx[1] && getYCoord>=pty[1]-5 && getYCoord<=pty[1]+5 ){
                 engaste[2]=engaste[2]*-1
-                const canvas = document.getElementById("canvas");
-                const ctx = canvas.getContext("2d");
-                ctx.fillStyle="red"
-               
+                console.log(`sul2`);
+                ptx2[4]=ptx[1];
+                ptx2[5]=ptx[0];
+                pty2[4]=pty[1];
+                pty2[5]=pty[1]-100;
             }
-            //fazer um ou la no '-1'||-1
-            //resolver la no engaste 3
             if(btn==='engastar' && getXCoord>=ptx[0]-5 && getXCoord<=ptx[0]+5 && getYCoord>pty[0] && getYCoord<pty[1]){
                 engaste[3]=engaste[3]*-1
+                console.log(`oeste`);
+                ptx2[6]=ptx[0];
+                ptx2[7]=ptx[0]-100;
+                pty2[6]=pty[0];
+                pty2[7]=pty[1];
                
             }
             if(btn==='engastar' && getXCoord>=ptx[1]-5 && getXCoord<=ptx[1]+5 && getYCoord<pty[0] && getYCoord>pty[1]){
                 engaste[1]=engaste[1]*-1
+                console.log(`oeste2`);
+                ptx2[6]=ptx[1];
+                ptx2[7]=ptx[1]-100;
+                pty2[6]=pty[1];
+                pty2[7]=pty[0];
 
             }
-            
-
-            
             if(btn==='engastar'){
                 const canvas = document.getElementById("canvas");
                 const ctx = canvas.getContext("2d");
@@ -2040,7 +2072,8 @@
 
                 ctx.fillText(`${Math.abs(ptx[1]-ptx[0])}`,ptx[0]+(ptx[1]-ptx[0])/2, pty[0]-5);
 
-                ctx.fillText(`${Math.abs(pty[1]-pty[0])}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);  
+                ctx.fillText(`${Math.abs(pty[1]-pty[0])}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);
+                 
             }
             if(btn==='mover' && mov===-1 && getXCoord<ptx[0]+Δx && getXCoord> ptx[0] && getYCoord>pty[0] && getYCoord<pty[0]+Δy){
                 mov=mov*-1  
@@ -2074,7 +2107,8 @@
                 input.onkeydown = handleEntery;
 
                 document.body.appendChild(input);
-            } 
+            }
+            
         }
         function handleEnterx(e) {
         var keyCode = e.keyCode;
@@ -2107,14 +2141,22 @@
 
             ctx.fillText(`${Math.abs(ptx[1]-ptx[0])}`,ptx[0]+(ptx[1]-ptx[0])/2, pty[0]-5);
 
-            ctx.fillText(`${Math.abs(pty[1]-pty[0])}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);     
+            ctx.fillText(`${Math.abs(pty[1]-pty[0])}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);  
+                    pty2[3]=getYCoord;
+                    ptx2[4]=getXCoord;
+                    pty2[4]=getYCoord;
+                    pty2[5]=getYCoord+100;
+                    ptx2[6]=getXCoord;
+                    ptx2[7]=getXCoord-100;
+                    pty2[7]=getYCoord;
+                    //Redesenhar? o que esta dando errado?
         }
         }
-
         function soltar(){
             var getXCoord = event.offsetX;
             var getYCoord = event.offsetY;
-            if(btn==='mover' && mov===1 ){
+           
+            if(btn==='mover' && mov===1 ){//Faltam fazer o mover negativo
                 Δx=ptx[1]-ptx[0];
                 Δy=pty[1]-pty[0];
                 mov=mov*-1
@@ -2123,24 +2165,81 @@
                 ptx[0]=getXCoord;
                 pty[0]=getYCoord;
                 
+                if(engaste[0]===1){
+                ptx2[1]=getXCoord;
+                ptx2[0]=getXCoord+Δx;
+                pty2[0]=getYCoord;
+                pty2[1]=getYCoord-100;
+                }
+                if(engaste[1]===1){
+                ptx2[2]=getXCoord+Δx;
+                ptx2[3]=getXCoord+Δx+100;
+                pty2[2]=getYCoord;
+                pty2[3]=getYCoord+Δy;
+                }
+                if(engaste[2]===1){
+                ptx2[4]=getXCoord;
+                ptx2[5]=getXCoord+Δx;
+                pty2[4]=getYCoord+Δy;
+                pty2[5]=getYCoord+Δy+100;
+                }
+                if(engaste[3]===1){
+                console.log(`oeste`);
+                ptx2[6]=getXCoord+Δx;
+                ptx2[7]=getXCoord-100;
+                pty2[6]=getYCoord;
+                pty2[7]=getYCoord+Δy;
+                }
             }
-            if(btn==='modificar' && mdf===1){
+            if(btn==='modificar' && mdf===1){//Falta criar os pontos novos
                 mdf=mdf*-1
                 if(mdfPt===1){
                     ptx[0]=getXCoord;
                     pty[0]=getYCoord;
+                    ptx2[1]=getXCoord;
+                    pty2[1]=getYCoord-100;
+                    pty2[0]=getYCoord;
+                    pty2[2]=getYCoord;
+                    ptx2[4]=getXCoord;
+                    ptx2[6]=getXCoord;
+                    ptx2[7]=getXCoord-100;
+                    pty2[6]=getYCoord;
                 }
                 if(mdfPt===2){
                     pty[0]=getYCoord;
                     ptx[1]=getXCoord;
+                    ptx2[0]=getXCoord;
+                    pty2[0]=getYCoord;
+                    pty2[1]=getYCoord-100;
+                    ptx2[3]=getXCoord+100;
+                    ptx2[2]=getXCoord;
+                    pty2[2]=getYCoord;
+                    ptx2[5]=getXCoord;
+                    pty2[6]=getYCoord;
                 }
-                if(mdfPt===3){
+                if(mdfPt===3){//Verificar 4 e 5
                     ptx[1]=getXCoord;
                     pty[1]=getYCoord;
+                    ptx2[0]=getXCoord;
+                    pty2[3]=getYCoord;
+                    ptx2[2]=getXCoord;
+                    ptx2[3]=getXCoord+100;
+                    ptx2[5]=getXCoord;
+                    pty2[4]=getYCoord;
+                    pty2[5]=getYCoord+100;
+                    pty2[7]=getYCoord;
                 }
-                if(mdfPt===4){
+                if(mdfPt===4){// 6 e 7, 4 e 5 Continuar aqui
                     pty[1]=getYCoord;
                     ptx[0]=getXCoord;
+                    ptx2[1]=getXCoord;
+                    pty2[3]=getYCoord;
+                    ptx2[4]=getXCoord;
+                    pty2[4]=getYCoord;
+                    pty2[5]=getYCoord+100;
+                    ptx2[6]=getXCoord;
+                    ptx2[7]=getXCoord-100;
+                    pty2[7]=getYCoord;
                 }
                 Δx=ptx[1]-ptx[0];
                 Δy=pty[1]-pty[0];
@@ -2150,7 +2249,6 @@
                 var registrando=pty.push(getYCoord);
                 Δx=ptx[1]-ptx[0];
                 Δy=pty[1]-pty[0];
-                
             }
             cont=0
             
@@ -2159,8 +2257,6 @@
                 const canvas = document.getElementById("canvas");
                 const ctx = canvas.getContext("2d");
                 if(engaste[0]===1 && ptx[1]-ptx[0]>0){
-                    
-                   
                     ctx.beginPath();
                     ctx.moveTo(ptx[0]+cont,pty[0]);
                     ctx.lineTo(ptx[0]+cont+3,pty[0]-4);
@@ -2233,13 +2329,33 @@
                 }
                 cont=cont+5
             }while(cont<Math.abs(pty[1]-pty[0]));
-            
-            
+            cont=0
+            const canvas = document.getElementById("canvas");
+                    const ctx = canvas.getContext("2d");
+                    if(engaste[0]>0){
+                    ctx.strokeStyle = 'Gray';
+                    ctx.strokeRect(ptx2[0],pty2[0],ptx2[1]-ptx2[0],pty2[1]-pty2[0]);
+                    ctx.strokeStyle = 'Black';
+                    }
+                    if(engaste[1]>0){
+                    ctx.strokeStyle = 'Gray';
+                    ctx.strokeRect(ptx2[2],pty2[2],ptx2[3]-ptx2[2],pty2[3]-pty2[2]);
+                    ctx.strokeStyle = 'Black';
+                    }
+                    if(engaste[2]>0){
+                    ctx.strokeStyle = 'Gray';
+                    ctx.strokeRect(ptx2[4],pty2[4],ptx2[5]-ptx2[4],pty2[5]-pty2[4]);
+                    ctx.strokeStyle = 'Black';
+                    }
+                    if(engaste[3]>0){
+                    ctx.strokeStyle = 'Gray';
+                    ctx.strokeRect(ptx2[6],pty2[6],ptx2[7]-ptx2[6],pty2[7]-pty2[6]);
+                    ctx.strokeStyle = 'Black';
+                    }      
         }
         function sair(){
 
         }
-
     </script>
 </body>
 </html>
