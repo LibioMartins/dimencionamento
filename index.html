@@ -2114,6 +2114,11 @@
         var keyCode = e.keyCode;
         if (keyCode === 13 && !isNaN(this.value)===true) {
             ptx[1]=Number(this.value)+ptx[0];
+            ptx2[0]=ptx[1];
+            ptx2[3]=ptx[1]+100;
+            ptx2[2]=ptx[1];
+            ptx2[5]=ptx[1];
+
             document.body.removeChild(this);
             hasInput = false;
             const canvas = document.getElementById("canvas");
@@ -2131,6 +2136,10 @@
         var keyCode = e.keyCode;
         if (keyCode === 13 && !isNaN(this.value)===true) {
             pty[1]=Number(this.value)+pty[0];
+            pty2[3]=pty[1];
+            pty2[4]=pty[1];
+            pty2[5]=pty[1]+100;
+            pty2[7]=pty[1];
             document.body.removeChild(this);
             hasInput = false;
             const canvas = document.getElementById("canvas");
@@ -2142,14 +2151,8 @@
             ctx.fillText(`${Math.abs(ptx[1]-ptx[0])}`,ptx[0]+(ptx[1]-ptx[0])/2, pty[0]-5);
 
             ctx.fillText(`${Math.abs(pty[1]-pty[0])}`,ptx[0]-30,pty[0]+(pty[1]-pty[0])/2);  
-                    pty2[3]=getYCoord;
-                    ptx2[4]=getXCoord;
-                    pty2[4]=getYCoord;
-                    pty2[5]=getYCoord+100;
-                    ptx2[6]=getXCoord;
-                    ptx2[7]=getXCoord-100;
-                    pty2[7]=getYCoord;
-                    //Redesenhar? o que esta dando errado?
+    
+                    //Redesenhar? 
         }
         }
         function soltar(){
@@ -2351,7 +2354,7 @@
                     ctx.strokeStyle = 'Gray';
                     ctx.strokeRect(ptx2[6],pty2[6],ptx2[7]-ptx2[6],pty2[7]-pty2[6]);
                     ctx.strokeStyle = 'Black';
-                    }      
+                    }
         }
         function sair(){
 
